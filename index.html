@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>picker</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: white;
+            padding: 20px;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            font-weight: normal;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+            gap: 1px;
+            background: transparent;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+        }
+
+        .cell {
+            padding: 4px 2px;
+            font-size: 10px;
+            text-align: center;
+            border: 1px solid #ccc;
+            background: white;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .cell.highlighted {
+            background: black;
+            color: white;
+        }
+
+        .pick-button {
+            padding: 10px 30px;
+            font-size: 1rem;
+            background: white;
+            border: 1px solid black;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .pick-button:hover:not(:disabled) {
+            background: #f0f0f0;
+        }
+
+        .pick-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .result {
+            font-size: 2rem;
+            min-height: 50px;
+        }
+    </style>
+</head>
+<body>
+    <h1>NY Neighborhood Picker</h1>
+    
+    <button class="pick-button" id="pickBtn" onclick="pick()">Pick</button>
+    
+    <div class="result" id="result"></div>
+    
+    <div class="grid" id="grid"></div>
+
+    <script>
+        const neighborhoods = [
+            "Melrose",
+            "Mott Haven",
+            "Port Morris",
+            "Hunts Point",
+            "Longwood",
+            "Claremont",
+            "Concourse Village",
+            "Crotona Park",
+            "Morrisania",
+            "Concourse",
+            "Highbridge",
+            "Mount Eden",
+            "Fordham",
+            "Morris Heights",
+            "Mount Hope",
+            "University Heights",
+            "Bathgate",
+            "Belmont",
+            "East Tremont",
+            "West Farms",
+            "Bedford Park",
+            "Fordham Heights",
+            "Jerome Park",
+            "Kingsbridge Heights",
+            "Norwood",
+            "University Heights",
+            "Fieldston",
+            "Kingsbridge",
+            "Kingsbridge Heights",
+            "Marble Hill",
+            "Riverdale",
+            "Spuyten Duyvil",
+            "Van Cortlandt Village",
+            "Bronx River",
+            "Bruckner",
+            "Castle Hill",
+            "Clason Point",
+            "Harding Park",
+            "Parkchester",
+            "Soundview",
+            "Unionport",
+            "City Island",
+            "Co-op City",
+            "Locust Point",
+            "Pelham Bay",
+            "Silver Beach",
+            "Throgs Neck",
+            "Westchester Square",
+            "Allerton",
+            "Bronxdale",
+            "Indian Village",
+            "Laconia",
+            "Morris Park",
+            "Pelham Gardens",
+            "Pelham Parkway",
+            "Van Nest",
+            "Baychester",
+            "Edenwald",
+            "Eastchester",
+            "Fish Bay",
+            "Olinville",
+            "Wakefield",
+            "Williamsbridge",
+            "Woodlawn Heights",
+            "Greenpoint",
+            "Williamsburg",
+            "Williamsburg Houses",
+            "Boerum Hill",
+            "Brooklyn Heights",
+            "Brooklyn Navy Yard",
+            "Clinton Hill",
+            "Dumbo",
+            "Fort Greene",
+            "Fulton Ferry",
+            "Fulton Mall",
+            "Vinegar Hill",
+            "Bedford–Stuyvesant",
+            "Ocean Hill",
+            "Stuyvesant Heights",
+            "Bushwick",
+            "City Line",
+            "Cypress Hills",
+            "East New York",
+            "Highland Park",
+            "New Lots",
+            "Starrett City",
+            "Carroll Gardens",
+            "Cobble Hill",
+            "Gowanus",
+            "Park Slope",
+            "Red Hook",
+            "Greenwood Heights",
+            "Sunset Park",
+            "Windsor Terrace",
+            "Crown Heights",
+            "Prospect Heights",
+            "Weeksville",
+            "Crown Heights",
+            "Prospect Lefferts Gardens",
+            "Wingate",
+            "Bay Ridge",
+            "Dyker Heights",
+            "Fort Hamilton",
+            "Bath Beach",
+            "Bensonhurst",
+            "Gravesend",
+            "Mapleton",
+            "Borough Park",
+            "Kensington",
+            "Midwood",
+            "Ocean Parkway",
+            "Bensonhurst",
+            "Brighton Beach",
+            "Coney Island",
+            "Gravesend",
+            "Sea Gate",
+            "Flatbush",
+            "Kensington",
+            "Midwood",
+            "Ocean Parkway",
+            "East Gravesend",
+            "Gerritsen Beach",
+            "Homecrest",
+            "Kings Bay",
+            "Kings Highway",
+            "Madison",
+            "Manhattan Beach",
+            "Plum Beach",
+            "Sheepshead Bay",
+            "Brownsville",
+            "Ocean Hill",
+            "Ditmas Village",
+            "East Flatbush",
+            "Erasmus",
+            "Farragut",
+            "Remsen Village",
+            "Rugby",
+            "Bergen Beach",
+            "Canarsie",
+            "Flatlands",
+            "Georgetown",
+            "Marine Park",
+            "Mill Basin",
+            "Mill Island",
+            "Battery Park City",
+            "Financial District",
+            "Tribeca",
+            "Chinatown",
+            "Greenwich Village",
+            "Little Italy",
+            "Lower East Side",
+            "NoHo",
+            "SoHo",
+            "West Village",
+            "Alphabet City",
+            "Chinatown",
+            "East Village",
+            "Lower East Side",
+            "Two Bridges",
+            "Chelsea",
+            "Clinton",
+            "Hell's Kitchen",
+            "Hudson Yards",
+            "Midtown",
+            "Gramercy Park",
+            "Kips Bay",
+            "Rose Hill",
+            "Murray Hill",
+            "Peter Cooper Village",
+            "Stuyvesant Town",
+            "Sutton Place",
+            "Tudor City",
+            "Turtle Bay",
+            "Waterside Plaza",
+            "Lincoln Square",
+            "Manhattan Valley",
+            "Upper West Side",
+            "Lenox Hill",
+            "Roosevelt Island",
+            "Upper East Side",
+            "Yorkville",
+            "Hamilton Heights",
+            "Manhattanville",
+            "Morningside Heights",
+            "Harlem",
+            "Polo Grounds",
+            "East Harlem",
+            "Randall's Island",
+            "Spanish Harlem",
+            "Wards Island",
+            "Inwood",
+            "Washington Heights",
+            "Astoria",
+            "Astoria Heights",
+            "Queensbridge",
+            "Dutch Kills",
+            "Long Island City",
+            "Ravenswood",
+            "Rikers Island",
+            "Steinway",
+            "Blissville",
+            "Hunters Point",
+            "Long Island City",
+            "Sunnyside",
+            "Sunnyside Gardens",
+            "Woodside",
+            "East Elmhurst",
+            "Jackson Heights",
+            "North Corona",
+            "Corona",
+            "Elmhurst",
+            "Fresh Pond",
+            "Glendale",
+            "Maspeth",
+            "Middle Village",
+            "Liberty Park",
+            "Ridgewood",
+            "Forest Hills",
+            "Rego Park",
+            "Bay Terrace",
+            "Beechhurst",
+            "College Point",
+            "Flushing",
+            "Linden Hill",
+            "Malba",
+            "Queensboro Hill",
+            "Whitestone",
+            "Willets Point",
+            "Briarwood",
+            "Fresh Meadows",
+            "Holliswood",
+            "Jamaica Estates",
+            "Kew Gardens Hills",
+            "Pomonok",
+            "Pomonok Houses",
+            "Utopia",
+            "Kew Gardens",
+            "Ozone Park",
+            "Richmond Hill",
+            "Woodhaven",
+            "Howard Beach",
+            "Lindenwood",
+            "Richmond Hill",
+            "South Ozone Park",
+            "Tudor Village",
+            "Auburndale",
+            "Bayside",
+            "Douglaston",
+            "East Flushing",
+            "Hollis Hills",
+            "Little Neck",
+            "Oakland Gardens",
+            "Baisley Park",
+            "Jamaica",
+            "Hollis",
+            "Rochdale Village",
+            "St. Albans",
+            "South Jamaica",
+            "Springfield Gardens",
+            "Bellerose",
+            "Brookville",
+            "Cambria Heights",
+            "Floral Park",
+            "Glen Oaks",
+            "Laurelton",
+            "Meadowmere",
+            "Queens Village",
+            "Rosedale",
+            "Arverne",
+            "Bayswater",
+            "Belle Harbor",
+            "Breezy Point",
+            "Edgemere",
+            "Far Rockaway",
+            "Neponsit",
+            "Rockaway Park",
+            "Seaside",
+            "Arlington",
+            "Castleton Corners",
+            "Clifton",
+            "Concord",
+            "Elm Park",
+            "Fort Wadsworth",
+            "Graniteville",
+            "Grymes Hill",
+            "Livingston",
+            "Mariners Harbor",
+            "Meiers Corners",
+            "New Brighton",
+            "Port Ivory",
+            "Port Richmond",
+            "Randall Manor",
+            "Rosebank",
+            "St. George",
+            "Shore Acres",
+            "Silver Lake",
+            "Stapleton",
+            "Sunnyside",
+            "Tompkinsville",
+            "West Brighton",
+            "Westerleigh",
+            "Arrochar",
+            "Bloomfield",
+            "Bulls Head",
+            "Chelsea",
+            "Dongan Hills",
+            "Egbertville",
+            "Emerson Hill",
+            "Grant City",
+            "Grasmere",
+            "Midland Beach",
+            "New Dorp",
+            "New Springville",
+            "Oakwood",
+            "Ocean Breeze",
+            "Old Town",
+            "South Beach",
+            "Todt Hill",
+            "Travis",
+            "Annadale",
+            "Arden Heights",
+            "Bay Terrace",
+            "Charleston",
+            "Eltingville",
+            "Great Kills",
+            "Greenridge",
+            "Huguenot",
+            "Pleasant Plains",
+            "Prince's Bay",
+            "Richmond Valley",
+            "Rossville",
+            "Tottenville",
+            "Woodrow"
+        ]
+
+        let isPicking = false;
+        let highlightedIndex = -1;
+
+        function createGrid() {
+            const grid = document.getElementById('grid');
+            neighborhoods.forEach((neighborhood, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.textContent = neighborhood;
+                cell.id = 'cell-' + index;
+                grid.appendChild(cell);
+            });
+        }
+
+        function clearHighlight() {
+            if (highlightedIndex >= 0) {
+                document.getElementById('cell-' + highlightedIndex).classList.remove('highlighted');
+            }
+        }
+
+        function highlight(index) {
+            clearHighlight();
+            highlightedIndex = index;
+            document.getElementById('cell-' + index).classList.add('highlighted');
+        }
+
+        function pick() {
+            if (isPicking) return;
+            
+            isPicking = true;
+            const pickBtn = document.getElementById('pickBtn');
+            const result = document.getElementById('result');
+            
+            pickBtn.disabled = true;
+            result.textContent = '';
+            
+            const duration = 4000;
+            const startTime = Date.now();
+            
+            function easeOutCubic(t) {
+                return 1 - Math.pow(1 - t, 3);
+            }
+            
+            function animate() {
+                const elapsed = Date.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                const randomIndex = Math.floor(Math.random() * neighborhoods.length);
+                highlight(randomIndex);
+                
+                if (progress < 1) {
+                    const eased = easeOutCubic(progress);
+                    const delay = 30 + (eased * 250);
+                    setTimeout(animate, delay);
+                } else {
+                    result.textContent = neighborhoods[randomIndex];
+                    pickBtn.disabled = false;
+                    isPicking = false;
+                }
+            }
+            
+            animate();
+        }
+
+        createGrid();
+    </script>
+</body>
+</html>
